@@ -20,6 +20,89 @@
     <input id="refresh" type="button" value="refresh">
 </body>
 <script>
+
+  //const redCoords = [];
+
+
+  function init() {
+    var redCoords = [];
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    var button = document.getElementById("refresh");
+
+    redCircle = function() {
+      for(i=0; i<20; i++) {
+        var x = Math.floor(Math.random()*1000);
+        var y = Math.floor(Math.random()*1000);
+        var radius = Math.floor(20);
+
+        redCoords.push([x, y]);
+
+        var r = Math.floor(Math.random()*255);
+        var g = Math.floor(Math.random()*255);
+        var b = Math.floor(Math.random()*255);
+
+        ctx.beginPath();
+        ctx.arc(x,y,radius,Math.PI*2,0,false);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.closePath();
+        this.clicked=function(){
+          ctx.fillStyle='black';
+          ctx.fill();
+        }
+      }
+    }
+
+
+    var uid = Date.now() % 10000;
+    var color1 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color2 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color3 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var myColors = [color1, color2, color3];
+
+    ctx.clearRect(0,0,1000,1000);
+
+    var redCircles = new redCircle();
+
+    //MAKES REGULAR NONCLICKABLE BUTTONS
+    for(i=0; i<100; i++) {
+      const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
+
+      var x = Math.floor(Math.random()*1000);
+      var y = Math.floor(Math.random()*1000);
+      var radius = Math.floor(20);
+
+      var r = Math.floor(Math.random()*255);
+      var g = Math.floor(Math.random()*255);
+      var b = Math.floor(Math.random()*255);
+
+      ctx.beginPath();
+      ctx.arc(x,y,radius,Math.PI*2,0,false);
+      ctx.fillStyle = randomColor;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    $('#canvas').click(function(e){
+      var x = e.clientX;
+      var y = e.clientY;
+
+      for (var i = 0; i < redCoords.length; i++) {
+        if(Math.pow(x - redCoords[i][0],2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
+          redCircles.clicked();
+          console.log('clicked ' + x + ' ' + y);
+        }
+      }
+    });
+  }
+
+
+
+
+
+  /*
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var button = document.getElementById("refresh");
@@ -32,29 +115,39 @@
 
   var refresh = function() {
 
-  ctx.clearRect(0,0,1000,1000);
-  for(i=0; i<100; i++) {
-    const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
+    ctx.clearRect(0,0,1000,1000);
 
-    var x = Math.floor(Math.random()*1000);
-    var y = Math.floor(Math.random()*1000);
-    var radius = Math.floor(20);
+    for(i=0; i<100; i++) {
+      const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
 
-    var r = Math.floor(Math.random()*255);
-    var g = Math.floor(Math.random()*255);
-    var b = Math.floor(Math.random()*255);
+      var x = Math.floor(Math.random()*1000);
+      var y = Math.floor(Math.random()*1000);
+      var radius = Math.floor(20);
 
-    ctx.beginPath();
-    ctx.arc(x,y,radius,Math.PI*2,0,false);
-    ctx.fillStyle = randomColor;
-    ctx.fill();
-    ctx.closePath();
+      var r = Math.floor(Math.random()*255);
+      var g = Math.floor(Math.random()*255);
+      var b = Math.floor(Math.random()*255);
 
+      ctx.beginPath();
+      ctx.arc(x,y,radius,Math.PI*2,0,false);
+      ctx.fillStyle = randomColor;
+      ctx.fill();
+      ctx.addHitRegion({id: 'button'});
+      ctx.closePath;
+
+
+    }
   }
-  }
-
   refresh();
   button.addEventListener("click", refresh, false);
+
+  */
+
+  $(document).ready(function() {
+    init();
+  });
+
+
 
 </script>
 </html>
