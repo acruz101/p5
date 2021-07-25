@@ -130,6 +130,15 @@
 
           var netRightPresses = rightPresses - leftPresses;
 
+
+
+          //Updating each redCoords did not work
+          /*
+          for (var i = 0; i < redCoords.length; i++) {
+            redCoords[i][0] = redCoords[i][0] - (netRightPresses*10);
+          }
+          */
+
           for (var i = 0; i < redCoords.length; i++) {
             if(Math.pow(x - (redCoords[i][0] - (netRightPresses*10)),2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
               makeWhiteCircle(redCoords[i][0] - (netRightPresses*10), redCoords[i][1], 21);
