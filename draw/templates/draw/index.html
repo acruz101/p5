@@ -18,7 +18,25 @@
     position: fixed;
     display: flex;
     flex-direction: row;
+    margin-top: 10px;
+    margin-left: 10px;
   }
+  #leftArrow {
+    margin-right: 9px;
+    padding: 14px;
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+  }
+  #rightArrow {
+    padding: 14px;
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+  }
+
+
+
 </style>
 
 </head>
@@ -141,7 +159,7 @@
 
           for (var i = 0; i < redCoords.length; i++) {
             if(Math.pow(x - (redCoords[i][0] - (netRightPresses*10)),2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
-              makeWhiteCircle(redCoords[i][0] - (netRightPresses*10), redCoords[i][1], 21);
+              //makeWhiteCircle(redCoords[i][0] - (netRightPresses*10), redCoords[i][1], 21);
               console.log('clicked ' + x + ' ' + y);
               // send click to large display
               socket.send("{\"x\" : " + x + ", \"y\" : " + y + ", \"uid\" : " + uid + "}" );
