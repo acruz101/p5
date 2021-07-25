@@ -42,7 +42,12 @@
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <canvas id="canvas" width="1050px" height="1600px"></canvas>
+    <canvas id="canvas" width="2000px" height="1600px"></canvas>
+    <div style="display:none;">
+      <img id="source"
+           src="/static/images/dollar.svg"
+           width="300" height="227">
+    </div>
 </body>
 <script>
 
@@ -53,14 +58,14 @@
   var redCoords = [];
   // generate 20 random x,y positions
   for(i=0; i<20; i++) {
-    var x = Math.floor(Math.random()*1050);
+    var x = Math.floor(Math.random()*2000);
     var y = Math.floor(Math.random()*1600);
     redCoords.push([x,y]);
   }
   var nonRedCoords = [];
   // generate 50 random x,y positions
-  for(i=0; i<50; i++) {
-    var _x = Math.floor(Math.random()*1050);
+  for(i=0; i<200; i++) {
+    var _x = Math.floor(Math.random()*2000);
     var _y = Math.floor(Math.random()*1600);
     nonRedCoords.push([_x,_y]);
   }
@@ -69,11 +74,11 @@
   var colorOrder = [];
 
     var uid = Date.now() % 10000;
-    var color1 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var color2 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var color3 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var myColors = [color1, color2, color3];
-
+    var color1 = "rgba(217, 48, 110, 0.30)"; //"#" + Math.floor(Math.random()*1000).toString(16);
+    var color2 = "rgba(167, 221, 242, 0.30)"; // + Math.floor(Math.random()*1000).toString(16);
+    var color3 = "rgba(242, 131, 34, 0.20)"; //+ Math.floor(Math.random()*1000).toString(16);
+    var color4 = "rgba(242, 79, 19, 0.20)";
+    var myColors = [color1, color2, color3, color4];
 
     var url = window.location.href;
 
@@ -86,12 +91,17 @@
     ctx.clearRect(0,0,1050,1600);
 
     redCircle = function(x,y) {
-        var radius = Math.floor(20);
+      const image = document.getElementById('source');
+      var radius = Math.floor(20);
+        //ctx.drawImage(image, x, y, 30,30)
+        ctx.save();
         ctx.beginPath();
         ctx.arc(x,y,radius,Math.PI*2,0,false);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-        ctx.closePath();
+        
+        ctx.clip();
+        ctx.drawImage(image, x-20, y-20, 2 * radius, 2 * radius);
+        ctx.restore();
+        
         this.clicked=function(){
           ctx.fillStyle='black';
           ctx.fill();
@@ -128,13 +138,13 @@
           redCircles.push(newRedCircle);
         }
         // generate other objects
-        for(i=0; i<50; i++) {
+        for(i=0; i<200; i++) {
           const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
           var x = nonRedCoords[i][0];
           var y = nonRedCoords[i][1];
           nonRedCoords.push([x,y]);
           colorOrder.push(randomColor);
-          var radius = Math.floor(20);
+          var radius = Math.floor(100);
           ctx.beginPath();
           ctx.arc(x,y,radius,Math.PI*2,0,false);
           ctx.fillStyle = randomColor;
@@ -147,15 +157,6 @@
           var y = e.clientY;
 
           var netRightPresses = rightPresses - leftPresses;
-
-
-
-          //Updating each redCoords did not work
-          /*
-          for (var i = 0; i < redCoords.length; i++) {
-            redCoords[i][0] = redCoords[i][0] - (netRightPresses*10);
-          }
-          */
 
           for (var i = 0; i < redCoords.length; i++) {
             if(Math.pow(x - (redCoords[i][0] - (netRightPresses*10)),2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
