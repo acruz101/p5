@@ -10,8 +10,11 @@
     <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
 
-    <style type="text/css">
-    </style>
+<style type="text/css">
+  #scoreboard {
+    float:right;
+  }
+</style>
 
 </head>
 <body>
@@ -19,6 +22,145 @@
     <canvas id="canvas" width="1050px" height="1600px"></canvas>
 </body>
 <script>
+
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+
+  var button = document.getElementById("refresh");
+  var redCoords = [];
+  // generate 20 random x,y positions
+  for(i=0; i<20; i++) {
+    var x = Math.floor(Math.random()*1050);
+    var y = Math.floor(Math.random()*1600);
+    redCoords.push([x,y]);
+  }
+  var nonRedCoords = [];
+  // generate 50 random x,y positions
+  for(i=0; i<50; i++) {
+    var _x = Math.floor(Math.random()*1050);
+    var _y = Math.floor(Math.random()*1600);
+    nonRedCoords.push([_x,_y]);
+  }
+
+  var redCircles = [];
+  var colorOrder = [];
+
+    var uid = Date.now() % 10000;
+    var color1 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color2 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color3 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var myColors = [color1, color2, color3];
+
+
+    var url = window.location.href;
+
+    var socket = new WebSocket(
+        'ws://' + window.location.host + '/ws/draw');
+    let params = (new URL(document.location)).searchParams;
+    let size = params.get('size');
+
+    // create hidden object
+    ctx.clearRect(0,0,1050,1600);
+
+    redCircle = function(x,y) {
+        var radius = Math.floor(20);
+        ctx.beginPath();
+        ctx.arc(x,y,radius,Math.PI*2,0,false);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.closePath();
+        this.clicked=function(){
+          ctx.fillStyle='black';
+          ctx.fill();
+        }
+    }
+
+    // hide hidden object
+    function makeWhiteCircle(x, y, radius) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, Math.PI*2,0,false);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+
+  if(size=='small') {
+    ctx.canvas.width  = window.innerWidth;
+    ctx.canvas.height = window.innerHeight;
+
+      $(document).ready(function() {
+        // generate 20 hidden objects
+        for(i=0; i<20; i++) {
+          var x = redCoords[i][0];
+          var y = redCoords[i][1];
+          var newRedCircle = new redCircle(x,y);
+          redCircles.push(newRedCircle);
+        }
+        // generate other objects
+        for(i=0; i<50; i++) {
+          const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
+          var x = nonRedCoords[i][0];
+          var y = nonRedCoords[i][1];
+          nonRedCoords.push([x,y]);
+          colorOrder.push(randomColor);
+          var radius = Math.floor(20);
+          ctx.beginPath();
+          ctx.arc(x,y,radius,Math.PI*2,0,false);
+          ctx.fillStyle = randomColor;
+          ctx.fill();
+          ctx.closePath();
+        }
+
+        $('#canvas').click(function(e){
+          var x = e.clientX;
+          var y = e.clientY;
+
+          for (var i = 0; i < redCoords.length; i++) {
+            if(Math.pow(x - redCoords[i][0],2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
+              makeWhiteCircle(redCoords[i][0], redCoords[i][1], 21);
+              console.log('clicked ' + x + ' ' + y);
+              // send click to large display
+              socket.send("{\"x\" : " + x + ", \"y\" : " + y + ", \"uid\" : " + uid + "}" );
+            }
+          }
+        });
+      });
+      socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+      };
+  }
+
+  if(size=='large') {
+    $('body').prepend('<div id="scoreboard"></div>');
+    $('#scoreboard').append('<h1>Score: </h1>');
+    $('#scoreboard').append('<h1 id="score">0</h1>');
+
+
+
+    socket.onmessage = function(receivedMessage) {
+      var received = JSON.parse(receivedMessage.data);
+      console.log("Received: " + JSON.stringify(received));
+      // You will probably want to add some code here to draw more lines.
+
+
+      //NEW HERE
+      var x = received.x;
+      var y = received.y;
+      var newRedCircle = new redCircle(x,y);
+
+
+      //increases the score by one every time
+      var currScore = parseInt($('#score').text());
+      $('#score').text(currScore+1);
+
+      socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+      };
+    }
+}
+
+
 
 
 
