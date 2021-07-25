@@ -16,31 +16,35 @@
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <canvas id="canvas" width="600px" height="1000px"></canvas>
+    <canvas id="canvas" width="1050px" height="1600px"></canvas>
 </body>
 <script>
-  
+  // getting the URL (you may want to use for Exercise 3)
+  var url = window.location.href;
+  var socket = new WebSocket(
+      'ws://' + window.location.host + '/ws/draw');
+  let params = (new URL(document.location)).searchParams;
+  let size = params.get('size');
 
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+  var button = document.getElementById("refresh");
+  var redCoords = [];
+  var nonRedCoords = [];
+  var redCircles = [];
+  var colorOrder = [];
 
-  function init() {
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
-    var button = document.getElementById("refresh");
-    var redCoords = [];
-    var redCircles = [];
+    var uid = Date.now() % 10000;
+    var color1 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color2 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var color3 = "#" + Math.floor(Math.random()*1000).toString(16);
+    var myColors = [color1, color2, color3];
 
-    // TARGET / HIDDEN OBJECT
-    redCircle = function() {
-        var x = Math.floor(Math.random()*1000);
-        var y = Math.floor(Math.random()*2000);
+    // create hidden object
+    ctx.clearRect(0,0,1050,1600);
+
+    redCircle = function(x,y) {
         var radius = Math.floor(20);
-
-        redCoords.push([x, y]);
-
-        var r = Math.floor(Math.random()*255);
-        var g = Math.floor(Math.random()*255);
-        var b = Math.floor(Math.random()*255);
-
         ctx.beginPath();
         ctx.arc(x,y,radius,Math.PI*2,0,false);
         ctx.fillStyle = 'red';
@@ -50,10 +54,9 @@
           ctx.fillStyle='black';
           ctx.fill();
         }
-      //}
     }
 
-    // COVERS HIDDEN OBJECTS WHEN FOUND
+    // hide hidden object
     function makeWhiteCircle(x, y, radius) {
       ctx.beginPath();
       ctx.arc(x, y, radius, Math.PI*2,0,false);
@@ -62,56 +65,65 @@
       ctx.closePath();
     }
 
-    var uid = Date.now() % 10000;
-    var color1 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var color2 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var color3 = "#" + Math.floor(Math.random()*1000).toString(16);
-    var myColors = [color1, color2, color3];
-
-    ctx.clearRect(0,0,425,825);
-
-    for(i=0; i<20; i++) {
-      var newRedCircle = new redCircle();
-      redCircles.push(newRedCircle);
-    }
-
-    //MAKES REGULAR NONCLICKABLE OBJECTS
-    for(i=0; i<100; i++) {
-      const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
-
-      var x = Math.floor(Math.random()*1000);
-      var y = Math.floor(Math.random()*1000);
-      var radius = Math.floor(20);
-
-      var r = Math.floor(Math.random()*255);
-      var g = Math.floor(Math.random()*255);
-      var b = Math.floor(Math.random()*255);
-
-      ctx.beginPath();
-      ctx.arc(x,y,radius,Math.PI*2,0,false);
-      ctx.fillStyle = randomColor;
-      ctx.fill();
-      ctx.closePath();
-    }
-
-    $('#canvas').click(function(e){
-      var x = e.clientX;
-      var y = e.clientY;
-
-      for (var i = 0; i < redCoords.length; i++) {
-        if(Math.pow(x - redCoords[i][0],2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
-          makeWhiteCircle(redCoords[i][0], redCoords[i][1], 21);
-          console.log('clicked ' + x + ' ' + y);
+  
+  if(size=='small') {
+      $(document).ready(function() {
+        // generate 20 hidden objects
+        for(i=0; i<20; i++) {
+          var x = Math.floor(Math.random()*1050);
+          var y = Math.floor(Math.random()*1600);
+          var newRedCircle = new redCircle(x,y);
+          redCircles.push(newRedCircle);
+          redCoords.push([x, y]);
         }
-      }
-    });
+        // generate other objects
+        for(i=0; i<100; i++) {
+          const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
+          var x = Math.floor(Math.random()*1050);
+          var y = Math.floor(Math.random()*1600);
+          nonRedCoords.push([x,y]);
+          colorOrder.push(randomColor);
+          var radius = Math.floor(20);
+          ctx.beginPath();
+          ctx.arc(x,y,radius,Math.PI*2,0,false);
+          ctx.fillStyle = randomColor;
+          ctx.fill();
+          ctx.closePath();
+        }
 
+        $('#canvas').click(function(e){
+          var x = e.clientX;
+          var y = e.clientY;
+          
+          for (var i = 0; i < redCoords.length; i++) {
+            if(Math.pow(x - redCoords[i][0],2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
+              makeWhiteCircle(redCoords[i][0], redCoords[i][1], 21);
+              console.log('clicked ' + x + ' ' + y);
+              // send click to large display
+              socket.send("{\"x\" : " + x + ", \"y\" : " + y + ", \"uid\" : " + uid + "}" );
+            }
+          }
+        });
+      });
+      socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+      };
   }
 
-  $(document).ready(function() {
-    init();
-  });
+  if(size=='large') {
+      $(document).ready(function() {
+        // generate 20 hidden objects
+        for(i=0; i<redCoords.length; i++) {
+          var x = redCoords[i][0];
+          var y = redCoords[i][1];
+          var newRedCircle = new redCircle(x,y);
+          redCircles.push(newRedCircle);
+        }
+      });
+  }
 
+
+  
 
 
 </script>
