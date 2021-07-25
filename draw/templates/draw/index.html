@@ -14,6 +14,11 @@
   #scoreboard {
     float:right;
   }
+  #arrowKeys {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+  }
 </style>
 
 </head>
@@ -86,8 +91,15 @@
 
 
   if(size=='small') {
-    ctx.canvas.width  = window.innerWidth;
-    ctx.canvas.height = window.innerHeight;
+      ctx.canvas.width  = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+
+      $('body').prepend('<div id="arrowKeys"></div>');
+      $('#arrowKeys').append('<div id="leftArrow">Left</div>');
+      $('#arrowKeys').append('<div id="rightArrow">Right</div>');
+
+      var leftPresses = 0;
+      var rightPresses = 0;
 
       $(document).ready(function() {
         // generate 20 hidden objects
@@ -116,15 +128,30 @@
           var x = e.clientX;
           var y = e.clientY;
 
+          var netRightPresses = rightPresses - leftPresses;
+
           for (var i = 0; i < redCoords.length; i++) {
-            if(Math.pow(x - redCoords[i][0],2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
-              makeWhiteCircle(redCoords[i][0], redCoords[i][1], 21);
+            if(Math.pow(x - (redCoords[i][0] - (netRightPresses*10)),2) + Math.pow(y - redCoords[i][1],2) < Math.pow(20,2)) {
+              makeWhiteCircle(redCoords[i][0] - (netRightPresses*10), redCoords[i][1], 21);
               console.log('clicked ' + x + ' ' + y);
               // send click to large display
               socket.send("{\"x\" : " + x + ", \"y\" : " + y + ", \"uid\" : " + uid + "}" );
             }
           }
         });
+
+        $('#rightArrow').click(function() {
+          console.log('arrow');
+          rightPresses++;
+          window.scrollBy(10, 0);
+        });
+
+        $('#leftArrow').click(function() {
+          console.log('arrow');
+          leftPresses++;
+          window.scrollBy(-10, 0);
+        });
+
       });
       socket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
