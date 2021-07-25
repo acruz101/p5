@@ -30,7 +30,20 @@
   var ctx = canvas.getContext("2d");
   var button = document.getElementById("refresh");
   var redCoords = [];
+  // generate 20 random x,y positions
+  for(i=0; i<20; i++) {
+    var x = Math.floor(Math.random()*1050);
+    var y = Math.floor(Math.random()*1600);
+    redCoords.push([x,y]);
+  }
   var nonRedCoords = [];
+  // generate 50 random x,y positions
+  for(i=0; i<50; i++) {
+    var _x = Math.floor(Math.random()*1050);
+    var _y = Math.floor(Math.random()*1600);
+    nonRedCoords.push([_x,_y]);
+  }
+
   var redCircles = [];
   var colorOrder = [];
 
@@ -70,17 +83,16 @@
       $(document).ready(function() {
         // generate 20 hidden objects
         for(i=0; i<20; i++) {
-          var x = Math.floor(Math.random()*1050);
-          var y = Math.floor(Math.random()*1600);
+          var x = redCoords[i][0];
+          var y = redCoords[i][1];
           var newRedCircle = new redCircle(x,y);
           redCircles.push(newRedCircle);
-          redCoords.push([x, y]);
         }
         // generate other objects
-        for(i=0; i<100; i++) {
+        for(i=0; i<50; i++) {
           const randomColor = myColors[Math.floor(Math.random() * myColors.length)];
-          var x = Math.floor(Math.random()*1050);
-          var y = Math.floor(Math.random()*1600);
+          var x = nonRedCoords[i][0];
+          var y = nonRedCoords[i][1];
           nonRedCoords.push([x,y]);
           colorOrder.push(randomColor);
           var radius = Math.floor(20);
@@ -111,16 +123,23 @@
   }
 
   if(size=='large') {
-      $(document).ready(function() {
-        // generate 20 hidden objects
-        for(i=0; i<redCoords.length; i++) {
-          var x = redCoords[i][0];
-          var y = redCoords[i][1];
-          var newRedCircle = new redCircle(x,y);
-          redCircles.push(newRedCircle);
-        }
-      });
+    socket.onmessage = function(receivedMessage) {
+    var received = JSON.parse(receivedMessage.data);
+    console.log("Received: " + JSON.stringify(received));
+    // You will probably want to add some code here to draw more lines.
+
+
+    //NEW HERE
+    var x = received.x;
+    var y = received.y;
+    var newRedCircle = new redCircle(x,y);
+        
+
+    socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
   }
+}
 
 
   
