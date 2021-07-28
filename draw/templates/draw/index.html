@@ -58,8 +58,8 @@
   var redCoords = [];
   // generate 20 random x,y positions
   for(i=0; i<20; i++) {
-    var x = Math.floor(Math.random()*2000);
-    var y = Math.floor(Math.random()*1600);
+    var x = Math.floor(Math.random()*window.innerWidth);
+    var y = Math.floor(Math.random()*window.innerHeight);
     redCoords.push([x,y]);
   }
   var nonRedCoords = [];
@@ -97,11 +97,11 @@
         ctx.save();
         ctx.beginPath();
         ctx.arc(x,y,radius,Math.PI*2,0,false);
-        
+
         ctx.clip();
         ctx.drawImage(image, x-20, y-20, 2 * radius, 2 * radius);
         ctx.restore();
-        
+
         this.clicked=function(){
           ctx.fillStyle='black';
           ctx.fill();
@@ -164,6 +164,7 @@
               console.log('clicked ' + x + ' ' + y);
               // send click to large display
               socket.send("{\"x\" : " + x + ", \"y\" : " + y + ", \"uid\" : " + uid + "}" );
+              break;
             }
           }
         });
@@ -179,6 +180,25 @@
           leftPresses++;
           window.scrollBy(-10, 0);
         });
+
+        document.onkeydown = function (event) {
+          switch (event.keyCode) {
+            case 37:
+              leftPresses++;
+              leftPresses++;
+              leftPresses++;
+              leftPresses++;
+
+              //window.scrollBy(-10, 0);
+            case 39:
+              rightPresses++;
+              rightPresses++;
+              rightPresses++;
+              rightPresses++;
+              //window.scrollBy(10, 0);
+          }
+
+        };
 
       });
       socket.onclose = function(e) {
